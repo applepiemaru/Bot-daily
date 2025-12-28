@@ -1,0 +1,2 @@
+# Sync Trigger: 2025-12-28 23:30
+# This file is used to trigger redeploy for Friend Bot
