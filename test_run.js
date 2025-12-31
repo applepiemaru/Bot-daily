@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 const run = async () => {
     const accounts = await getAccounts();
-    const targetName = 'pan chi';
+    const targetName = 'ironthread';
     const account = accounts.find(a => a.name === targetName);
     console.log(`Testing run for account: ${account.name}`);
     await executeSession(account.id);
