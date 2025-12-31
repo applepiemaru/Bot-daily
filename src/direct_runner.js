@@ -27,9 +27,12 @@ export const runDirectSession = async (account, mode = 'daily') => {
 
         const socket = io(SOCKET_URL, {
             extraHeaders: {
-                Cookie: sessionCookie,
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                'Cookie': sessionCookie,
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Origin': 'https://evertext.sytes.net',
+                'Referer': 'https://evertext.sytes.net/'
             },
+            transports: ['websocket'], // Force WebSocket
             reconnection: false,
             timeout: 30000
         });
@@ -54,13 +57,18 @@ export const runDirectSession = async (account, mode = 'daily') => {
 
         socket.on('connect', () => {
             console.log('[DirectRunner] Connected to Evertext WebSocket.');
-            socket.emit('start', { args: '' });
-            phase = 'start';
+            setTimeout(() => {
+                console.log('[DirectRunner] Sending start event...');
+                socket.emit('start', { args: '' });
+                phase = 'start';
+            }, 1000);
         });
 
-        socket.on('connect_error', (err) => {
-            console.error('[DirectRunner] Connection Error:', err.message);
-            cleanup(false, `WebSocket Connection Error: ${err.message}`);
+        socket.on('disconnect', (reason) => {
+            console.log(`[DirectRunner] WebSocket Disconnected. Reason: ${reason}`);
+            if (phase !== 'done' && phase !== 'idle' && !socket.connected) {
+                resolve({ success: false, reason: `Disconnected: ${reason}` });
+            }
         });
 
         socket.on('output', async (data) => {
